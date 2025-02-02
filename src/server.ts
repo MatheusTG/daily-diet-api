@@ -1,5 +1,6 @@
 import fastify from "fastify";
 import { usersRoutes } from "./routes/users";
+import { env } from "./env";
 
 const app = fastify();
 
@@ -9,7 +10,7 @@ app.register(usersRoutes, {
 
 app
   .listen({
-    port: 3333,
+    port: env.PORT,
     host: "0.0.0.0",
   })
   .then(() => console.log("HTTP Server Running!"));

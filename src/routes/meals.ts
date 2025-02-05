@@ -63,7 +63,7 @@ export async function mealsRoutes(app: FastifyInstance) {
     },
     async (request, reply) => {
       const datetimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/;
-      const createMealBodySchema = z.object({
+      const editMealBodySchema = z.object({
         name: z.string(),
         description: z.string(),
         datetime: z.string().regex(datetimeRegex),
@@ -71,7 +71,7 @@ export async function mealsRoutes(app: FastifyInstance) {
       });
 
       try {
-        const mealBody = createMealBodySchema.parse(request.body);
+        const mealBody = editMealBodySchema.parse(request.body);
 
         const editMealsParamsSchema = z.object({
           id: z.string().uuid(),
@@ -88,6 +88,26 @@ export async function mealsRoutes(app: FastifyInstance) {
           message: "News edited successfully",
           data: null,
         });
+      } catch (error) {
+        handleError(error, reply);
+      }
+    }
+  );
+
+  app.delete(
+    "/:id",
+    {
+      preHandler: [checkSessionIdExists],
+    },
+    async (request, reply) => {
+      const deleteIdMealScheme = z.object({
+        id: z.string().uuid(),
+      });
+
+      try {
+        const { id } = deleteIdMealScheme.parse(request.params);
+
+        await knex("meals").where("id", id).del();
       } catch (error) {
         handleError(error, reply);
       }

@@ -94,7 +94,9 @@ export async function mealsRoutes(app: FastifyInstance) {
 
       const { id } = editMealsParamsSchema.parse(request.params);
 
-      await knex("meals").where("id", id).update(mealBody);
+      await knex("meals")
+        .where("id", id)
+        .update({ ...mealBody, updated_at: new Date() });
 
       return reply.status(200).send({
         success: true,

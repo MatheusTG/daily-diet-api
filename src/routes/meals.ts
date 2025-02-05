@@ -76,6 +76,12 @@ export async function mealsRoutes(app: FastifyInstance) {
           ...mealBody,
           session_id: sessionId,
         });
+
+        return reply.status(201).send({
+          success: true,
+          message: "News criated successfully!",
+          data: null,
+        });
       } catch (error) {
         handleError(error, reply);
       }
@@ -134,6 +140,12 @@ export async function mealsRoutes(app: FastifyInstance) {
         const { id } = deleteIdMealScheme.parse(request.params);
 
         await knex("meals").where("id", id).del();
+
+        reply.status(204).send({
+          success: true,
+          message: "Meal deleted successfully!",
+          data: null,
+        });
       } catch (error) {
         handleError(error, reply);
       }

@@ -107,7 +107,7 @@ export async function mealsRoutes(app: FastifyInstance) {
 
         await knex("meals")
           .where("id", id)
-          .update({ ...mealBody, updated_at: new Date() });
+          .update({ ...mealBody, updated_at: new Date().toISOString() });
 
         return reply.status(200).send({
           success: true,

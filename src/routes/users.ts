@@ -3,6 +3,7 @@ import { knex } from "../database";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { handleError } from "../utils/handleError";
+import { checkSessionIdExists } from "../middlewares/checkSessionIdExists";
 
 export async function usersRoutes(app: FastifyInstance) {
   app.post("/", async (request, reply) => {
@@ -38,4 +39,55 @@ export async function usersRoutes(app: FastifyInstance) {
       handleError(error, reply);
     }
   });
+
+  app.get(
+    "/metrics/:id",
+    {
+      preHandler: [checkSessionIdExists],
+    },
+    async (request, reply) => {
+      const getUserMetricsParamsSchema = z.object({
+        id: z.string().uuid(),
+      });
+
+      try {
+        const { id } = getUserMetricsParamsSchema.parse(request.params);
+
+        const user = await knex("users").where("id", id).select().first();
+
+        const userMeals = await knex("meals")
+          .where("session_id", user?.session_id)
+          .select();
+
+        const numberOfMeals = userMeals.length;
+        const mealsInTheDiet = userMeals.filter((meal) => meal.diet).length;
+        const offDietMeals = numberOfMeals - mealsInTheDiet;
+        const BestSequence = userMeals
+          .sort((a, b) => {
+            return (
+              new Date(a.datetime).getTime() - new Date(a.datetime).getTime()
+            );
+          })
+          .reduce((acc, meal) => {
+            if (meal.diet) return acc + 1;
+            return 0;
+          }, 0);
+
+        const metrics = {
+          numberOfMeals,
+          mealsInTheDiet,
+          offDietMeals,
+          BestSequence,
+        };
+
+        return {
+          success: true,
+          message: "The metrics fetch was a success!",
+          data: metrics,
+        };
+      } catch (error) {
+        handleError(error, reply);
+      }
+    }
+  );
 }

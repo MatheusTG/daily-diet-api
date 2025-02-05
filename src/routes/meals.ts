@@ -6,7 +6,7 @@ import { checkSessionIdExists } from "../middlewares/checkSessionIdExists";
 import { handleError } from "../utils/handleError";
 
 export async function mealsRoutes(app: FastifyInstance) {
-  app.get("/:sessionId", async (request, reply) => {
+  app.get("/list/:sessionId", async (request, reply) => {
     const getMealsParamsSchema = z.object({
       sessionId: z.string().uuid(),
     });
@@ -18,13 +18,39 @@ export async function mealsRoutes(app: FastifyInstance) {
 
       return reply.status(200).send({
         success: true,
-        message: "The news listing was a success.",
+        message: "The news listing was a success!",
         data: meals,
       });
     } catch (error) {
       handleError(error, reply);
     }
   });
+
+  app.get(
+    "/:id",
+    {
+      preHandler: [checkSessionIdExists],
+    },
+    async (request, reply) => {
+      const getMealsParamsSchema = z.object({
+        id: z.string().uuid(),
+      });
+
+      try {
+        const { id } = getMealsParamsSchema.parse(request.params);
+
+        const meal = await knex("meals").where("id", id).select().first();
+
+        return reply.status(200).send({
+          success: true,
+          message: "The news fetch was a success!",
+          data: meal,
+        });
+      } catch (error) {
+        handleError(error, reply);
+      }
+    }
+  );
 
   app.post(
     "/",
@@ -85,7 +111,7 @@ export async function mealsRoutes(app: FastifyInstance) {
 
         return reply.status(200).send({
           success: true,
-          message: "News edited successfully",
+          message: "News edited successfully!",
           data: null,
         });
       } catch (error) {

@@ -1,8 +1,9 @@
 import { FastifyInstance } from "fastify";
 import { knex } from "../database";
-import { z, ZodError } from "zod";
+import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { checkSessionIdExists } from "../middlewares/checkSessionIdExists";
+import { handleError } from "../utils/handleError";
 
 export async function mealsRoutes(app: FastifyInstance) {
   app.get("/:sessionId", async (request, reply) => {
@@ -21,13 +22,7 @@ export async function mealsRoutes(app: FastifyInstance) {
         data: meals,
       });
     } catch (error) {
-      console.log(error);
-
-      return reply.status(500).send({
-        success: false,
-        message: "Unexpected error. Please try again later.",
-        data: null,
-      });
+      handleError(error, reply);
     }
   });
 
@@ -56,21 +51,7 @@ export async function mealsRoutes(app: FastifyInstance) {
           session_id: sessionId,
         });
       } catch (error) {
-        console.error(error);
-
-        if (error instanceof ZodError) {
-          return reply.status(400).send({
-            success: false,
-            message: "Validation Error",
-            data: null,
-          });
-        }
-
-        return reply.status(500).send({
-          success: false,
-          message: "Unexpected error. Please try again later.",
-          data: null,
-        });
+        handleError(error, reply);
       }
     }
   );
@@ -108,21 +89,7 @@ export async function mealsRoutes(app: FastifyInstance) {
           data: null,
         });
       } catch (error) {
-        console.error(error);
-
-        if (error instanceof ZodError) {
-          return reply.status(400).send({
-            success: false,
-            message: "Validation Error",
-            data: null,
-          });
-        }
-
-        return reply.status(500).send({
-          success: false,
-          message: "Unexpected error. Please try again later.",
-          data: null,
-        });
+        handleError(error, reply);
       }
     }
   );

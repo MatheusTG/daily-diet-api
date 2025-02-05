@@ -1,7 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { knex } from "../database";
 import { randomUUID } from "node:crypto";
-import { z, ZodError } from "zod";
+import { z } from "zod";
+import { handleError } from "../utils/handleError";
 
 export async function usersRoutes(app: FastifyInstance) {
   app.post("/", async (request, reply) => {
@@ -34,21 +35,7 @@ export async function usersRoutes(app: FastifyInstance) {
         data: null,
       });
     } catch (error) {
-      console.error(error);
-
-      if (error instanceof ZodError) {
-        return reply.status(400).send({
-          success: false,
-          message: "Validation Error",
-          data: null,
-        });
-      }
-
-      return reply.status(500).send({
-        success: false,
-        message: "Unexpected error. Please try again later.",
-        data: null,
-      });
+      handleError(error, reply);
     }
   });
 }

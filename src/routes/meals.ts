@@ -4,6 +4,36 @@ import { z, ZodError } from "zod";
 import { randomUUID } from "node:crypto";
 
 export async function mealsRoutes(app: FastifyInstance) {
+  app.get("/", async (request, reply) => {
+    const { sessionId } = request.cookies;
+
+    if (!sessionId) {
+      return reply.status(401).send({
+        success: false,
+        message: "Unauthorized access",
+        data: null,
+      });
+    }
+
+    try {
+      const meals = await knex("meals").where("session_id", sessionId).select();
+
+      return reply.status(200).send({
+        success: true,
+        message: "The news listing was a success.",
+        data: meals,
+      });
+    } catch (error) {
+      console.log(error);
+
+      return reply.status(500).send({
+        success: false,
+        message: "Unexpected error. Please try again later.",
+        data: null,
+      });
+    }
+  });
+
   app.post("/", async (request, reply) => {
     const datetimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/;
     const createMealBodySchema = z.object({

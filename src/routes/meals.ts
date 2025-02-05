@@ -4,16 +4,12 @@ import { z, ZodError } from "zod";
 import { randomUUID } from "node:crypto";
 
 export async function mealsRoutes(app: FastifyInstance) {
-  app.get("/", async (request, reply) => {
-    const { sessionId } = request.cookies;
+  app.get("/:sessionId", async (request, reply) => {
+    const getMealsParamsSchema = z.object({
+      sessionId: z.string().uuid(),
+    });
 
-    if (!sessionId) {
-      return reply.status(401).send({
-        success: false,
-        message: "Unauthorized access",
-        data: null,
-      });
-    }
+    const { sessionId } = getMealsParamsSchema.parse(request.params);
 
     try {
       const meals = await knex("meals").where("session_id", sessionId).select();

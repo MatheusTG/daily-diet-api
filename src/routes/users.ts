@@ -6,6 +6,31 @@ import { handleError } from "../utils/handleError";
 import { checkSessionIdExists } from "../middlewares/checkSessionIdExists";
 
 export async function usersRoutes(app: FastifyInstance) {
+  app.get(
+    "/",
+    {
+      preHandler: [checkSessionIdExists],
+    },
+    async (request, reply) => {
+      try {
+        const { sessionId } = request.cookies;
+
+        const user = await knex("users")
+          .where("session_id", sessionId)
+          .select()
+          .first();
+
+        return reply.status(200).send({
+          seccess: true,
+          message: "The user fetch was a success!",
+          data: user,
+        });
+      } catch (error) {
+        handleError(error, reply);
+      }
+    }
+  );
+
   app.post("/", async (request, reply) => {
     const createUserBodySchema = z.object({
       name: z.string(),
@@ -80,11 +105,11 @@ export async function usersRoutes(app: FastifyInstance) {
           BestSequence,
         };
 
-        return {
+        return reply.status(200).send({
           success: true,
           message: "The metrics fetch was a success!",
           data: metrics,
-        };
+        });
       } catch (error) {
         handleError(error, reply);
       }

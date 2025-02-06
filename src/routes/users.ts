@@ -87,22 +87,29 @@ export async function usersRoutes(app: FastifyInstance) {
         const numberOfMeals = userMeals.length;
         const mealsInTheDiet = userMeals.filter((meal) => meal.diet).length;
         const offDietMeals = numberOfMeals - mealsInTheDiet;
-        const BestSequence = userMeals
+        const bestSequence = userMeals
           .sort((a, b) => {
             return (
               new Date(a.datetime).getTime() - new Date(a.datetime).getTime()
             );
           })
-          .reduce((acc, meal) => {
-            if (meal.diet) return acc + 1;
-            return 0;
-          }, 0);
+          .reduce(
+            (acc, meal) => {
+              const { result, currentSequence: cur } = acc;
+
+              if (meal.diet) return { result, currentSequence: cur + 1 };
+
+              if (cur > result) return { result: cur, currentSequence: 0 };
+              else return { result, currentSequence: 0 };
+            },
+            { result: 0, currentSequence: 0 }
+          ).result;
 
         const metrics = {
           numberOfMeals,
           mealsInTheDiet,
           offDietMeals,
-          BestSequence,
+          bestSequence,
         };
 
         return reply.status(200).send({

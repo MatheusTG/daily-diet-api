@@ -3,6 +3,7 @@ import request from "supertest";
 import { app } from "../src/app";
 import { execSync } from "node:child_process";
 import { createUserAndGetCookies } from "./utils/createUserAndGetCookies";
+import { createMealAndReturnData } from "./utils/createMealAndReturnData";
 
 describe("Users routes", () => {
   beforeAll(async () => {
@@ -31,13 +32,13 @@ describe("Users routes", () => {
   it("should be able to fetch user metrics", async () => {
     const cookies = await createUserAndGetCookies(app);
 
-    await request(app.server).post("/meals").set("Cookie", cookies).send({
+    await createMealAndReturnData(app, cookies, {
       name: "Almoço",
       description: "Arroz, Feijão e Carne",
       datetime: "2024-02-04T15:30:00Z",
       diet: true,
     });
-    await request(app.server).post("/meals").set("Cookie", cookies).send({
+    await createMealAndReturnData(app, cookies, {
       name: "Janta",
       description: "Arroz, Feijão e Frango",
       datetime: "2024-02-05T15:30:00Z",

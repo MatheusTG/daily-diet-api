@@ -4,6 +4,7 @@ import request from "supertest";
 import { app } from "../src/app";
 import { execSync } from "node:child_process";
 import { createUserAndGetCookies } from "./utils/createUserAndGetCookies";
+import { createMealAndReturnData } from "./utils/createMealAndReturnData";
 
 describe("Meals routes", () => {
   beforeAll(async () => {
@@ -22,31 +23,13 @@ describe("Meals routes", () => {
   it("should be able to create a new meal", async () => {
     const cookies = await createUserAndGetCookies(app);
 
-    await request(app.server)
-      .post("/meals")
-      .set("Cookie", cookies)
-      .send({
-        name: "Janta",
-        description: "Arroz, Feijão e Frango",
-        datetime: "2024-02-05T15:30:00Z",
-        diet: false,
-      })
-      .expect(201);
+    await createMealAndReturnData(app, cookies);
   });
 
   it("should be able to list meals", async () => {
     const cookies = await createUserAndGetCookies(app);
 
-    await request(app.server)
-      .post("/meals")
-      .set("Cookie", cookies)
-      .send({
-        name: "Janta",
-        description: "Arroz, Feijão e Frango",
-        datetime: "2024-02-05T15:30:00Z",
-        diet: false,
-      })
-      .expect(201);
+    const mealCreationData = await createMealAndReturnData(app, cookies);
 
     const mealsListResponse = await request(app.server)
       .get(`/meals/list/${cookies[0].replace("sessionId=", "").split(";")[0]}`)
@@ -54,12 +37,7 @@ describe("Meals routes", () => {
       .expect(200);
 
     expect(mealsListResponse.body.data).toEqual([
-      expect.objectContaining({
-        name: "Janta",
-        description: "Arroz, Feijão e Frango",
-        datetime: "2024-02-05T15:30:00Z",
-        diet: 0,
-      }),
+      expect.objectContaining(mealCreationData),
     ]);
   });
 });

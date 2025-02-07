@@ -40,4 +40,26 @@ describe("Meals routes", () => {
       expect.objectContaining(mealCreationData),
     ]);
   });
+
+  it("should be able to fetch a meal", async () => {
+    const cookies = await createUserAndGetCookies(app);
+
+    const mealCreationData = await createMealAndReturnData(app, cookies);
+
+    const mealsListResponse = await request(app.server)
+      .get(`/meals/list/${cookies[0].replace("sessionId=", "").split(";")[0]}`)
+      .set("Cookie", cookies)
+      .expect(200);
+
+    const { id } = mealsListResponse.body.data[0];
+
+    const mealFetchResponse = await request(app.server)
+      .get(`/meals/${id}`)
+      .set("Cookie", cookies)
+      .expect(200);
+
+    expect(mealFetchResponse.body.data).toEqual(
+      expect.objectContaining(mealCreationData)
+    );
+  });
 });

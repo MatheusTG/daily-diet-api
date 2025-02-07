@@ -3,6 +3,7 @@ import { afterAll, beforeAll, expect, it } from "vitest";
 import request from "supertest";
 import { app } from "../src/app";
 import { execSync } from "node:child_process";
+import { createUserAndGetCookies } from "./utils/createUserAndGetCookies";
 
 describe("Meals routes", () => {
   beforeAll(async () => {
@@ -19,16 +20,7 @@ describe("Meals routes", () => {
   });
 
   it("should be able to create a new meal", async () => {
-    const userCreateResponse = await request(app.server)
-      .post("/users")
-      .send({
-        name: "Amanda",
-      })
-      .expect(201);
-
-    const cookies = userCreateResponse.get("Set-Cookie");
-
-    if (!cookies) throw new Error("Cookies do not exists!");
+    const cookies = await createUserAndGetCookies(app);
 
     await request(app.server)
       .post("/meals")
@@ -43,16 +35,7 @@ describe("Meals routes", () => {
   });
 
   it("should be able to list meals", async () => {
-    const userCreateResponse = await request(app.server)
-      .post("/users")
-      .send({
-        name: "Amanda",
-      })
-      .expect(201);
-
-    const cookies = userCreateResponse.get("Set-Cookie");
-
-    if (!cookies) throw new Error("Cookies do not exists!");
+    const cookies = await createUserAndGetCookies(app);
 
     await request(app.server)
       .post("/meals")

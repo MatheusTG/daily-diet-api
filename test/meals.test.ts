@@ -6,6 +6,15 @@ import { execSync } from "node:child_process";
 import { createUserAndGetCookies } from "./utils/createUserAndGetCookies";
 import { createMealAndReturnData } from "./utils/createMealAndReturnData";
 
+async function listMealsAndReturnData(cookies: string[]) {
+  const mealsListResponse = await request(app.server)
+    .get(`/meals/list/${cookies[0].replace("sessionId=", "").split(";")[0]}`)
+    .set("Cookie", cookies)
+    .expect(200);
+
+  return mealsListResponse.body.data;
+}
+
 describe("Meals routes", () => {
   beforeAll(async () => {
     await app.ready();
@@ -31,14 +40,9 @@ describe("Meals routes", () => {
 
     const mealCreationData = await createMealAndReturnData(app, cookies);
 
-    const mealsListResponse = await request(app.server)
-      .get(`/meals/list/${cookies[0].replace("sessionId=", "").split(";")[0]}`)
-      .set("Cookie", cookies)
-      .expect(200);
+    const mealListData = await listMealsAndReturnData(cookies);
 
-    expect(mealsListResponse.body.data).toEqual([
-      expect.objectContaining(mealCreationData),
-    ]);
+    expect(mealListData).toEqual([expect.objectContaining(mealCreationData)]);
   });
 
   it("should be able to fetch a meal", async () => {
@@ -46,15 +50,10 @@ describe("Meals routes", () => {
 
     const mealCreationData = await createMealAndReturnData(app, cookies);
 
-    const mealsListResponse = await request(app.server)
-      .get(`/meals/list/${cookies[0].replace("sessionId=", "").split(";")[0]}`)
-      .set("Cookie", cookies)
-      .expect(200);
-
-    const { id } = mealsListResponse.body.data[0];
+    const mealListData = await listMealsAndReturnData(cookies);
 
     const mealFetchResponse = await request(app.server)
-      .get(`/meals/${id}`)
+      .get(`/meals/${mealListData[0].id}`)
       .set("Cookie", cookies)
       .expect(200);
 
@@ -68,12 +67,8 @@ describe("Meals routes", () => {
 
     await createMealAndReturnData(app, cookies);
 
-    const mealsListResponse = await request(app.server)
-      .get(`/meals/list/${cookies[0].replace("sessionId=", "").split(";")[0]}`)
-      .set("Cookie", cookies)
-      .expect(200);
-
-    const { id } = mealsListResponse.body.data[0];
+    const mealListData = await listMealsAndReturnData(cookies);
+    const { id } = mealListData[0];
 
     const mealEditData = {
       name: "Almoço",
@@ -103,15 +98,10 @@ describe("Meals routes", () => {
 
     await createMealAndReturnData(app, cookies);
 
-    const mealsListResponse = await request(app.server)
-      .get(`/meals/list/${cookies[0].replace("sessionId=", "").split(";")[0]}`)
-      .set("Cookie", cookies)
-      .expect(200);
-
-    const { id } = mealsListResponse.body.data[0];
+    const mealListData = await listMealsAndReturnData(cookies);
 
     await request(app.server)
-      .delete(`/meals/${id}`)
+      .delete(`/meals/${mealListData[0].id}`)
       .set("Cookie", cookies)
       .expect(204);
   });

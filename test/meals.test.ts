@@ -97,4 +97,22 @@ describe("Meals routes", () => {
       expect.objectContaining({ ...mealEditData, diet: mealEditData ? 1 : 0 })
     );
   });
+
+  it("should be able to delete a meal", async () => {
+    const cookies = await createUserAndGetCookies(app);
+
+    await createMealAndReturnData(app, cookies);
+
+    const mealsListResponse = await request(app.server)
+      .get(`/meals/list/${cookies[0].replace("sessionId=", "").split(";")[0]}`)
+      .set("Cookie", cookies)
+      .expect(200);
+
+    const { id } = mealsListResponse.body.data[0];
+
+    await request(app.server)
+      .delete(`/meals/${id}`)
+      .set("Cookie", cookies)
+      .expect(204);
+  });
 });
